@@ -39,6 +39,7 @@ app.get('/task/:id',(req, res)=>{
     })
 })
 
+
 app.post('/user', (req,res)=>{
     const user = new User(req.body);
     user.save().then(()=>{
@@ -47,6 +48,28 @@ app.post('/user', (req,res)=>{
         res.status(400);
         res.send(error);
     })
+})
+
+app.get('/user', async (req, res)=>{
+
+    try{
+        const users =  await User.find({});
+        
+        res.send(users);
+    }catch(e){
+        res.status(500).send(e);
+    }
+})
+
+app.get('/user/:id', async (req, res)=>{
+    try{
+        const user = await User.findById(req.params.id);
+
+        if(!user) return res.status(404).send();
+        res.send(user);
+    }catch(e){
+        res.status(500).send(e)
+    }
 })
 
 app.listen(port, ()=>{
