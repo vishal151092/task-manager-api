@@ -49,6 +49,16 @@ app.patch('/task/:id', async(req,res)=>{
     }
 })
 
+app.delete('/task/:id', async (req,res)=>{
+    try{
+        const task = await Task.findByIdAndDelete(req.params.id);
+        if(!task) return res.status(404).send();
+        res.send(task);
+    }catch(e){
+        res.status(500).send();
+    }
+})
+
 app.post('/user', (req,res)=>{
     const user = new User(req.body);
     user.save().then(()=>{
@@ -84,6 +94,16 @@ app.get('/user/:id', async (req, res)=>{
 app.put('/user/:id', async (req,res)=>{
     try{
         const user = await User.findByIdAndUpdate(req.params.id, req.body, {new : true, runValidators: true});
+        if(!user) return res.status(404).send();
+        res.send(user);
+    }catch(e){
+        res.status(500).send();
+    }
+})
+
+app.delete('/user/:id', async (req,res)=>{
+    try{
+        const user = await User.findByIdAndDelete(req.params.id);
         if(!user) return res.status(404).send();
         res.send(user);
     }catch(e){
