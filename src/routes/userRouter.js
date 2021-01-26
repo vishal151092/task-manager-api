@@ -2,14 +2,21 @@ const express = require('express');
 const router = new express.Router();
 const User = require('../models/Users');
 
-router.post('/user', (req,res)=>{
+router.post('/user', async (req,res)=>{
+   
+   try{
     const user = new User(req.body);
-    user.save().then(()=>{
-        res.send(user);
-    }).catch((error)=>{
-        res.status(400);
-        res.send(error);
-    })
+    const token = await user.generateAuthToken();
+    user.tokens = user.tokens.concat({ token });
+    await user.save()
+    res.send(user);
+    
+   }catch(error){
+    res.status(400);
+    res.send(error);
+
+   } 
+        
 })
 
 router.get('/user', async (req, res)=>{
@@ -71,8 +78,11 @@ router.delete('/user/:id', async (req,res)=>{
 router.post('/user/login', async (req, res)=>{
     try{
         const user = await User.loginUser(req.body.userEmail, req.body.password);
-        //if(!user) throw new Error('Login Failed');
-        res.send(user);
+        const token = await user.generateAuthToken();
+        user.tokens = user.tokens.concat({ token });
+        await user.save();
+        
+        res.send({user : user, token : token});
     }catch(e){
         res.status(500).send({error : "Login Failed"});
     }
