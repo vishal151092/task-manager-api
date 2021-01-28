@@ -1,4 +1,5 @@
 const express = require('express');
+const auth = require('../middleware/auth');
 const router = new express.Router();
 const User = require('../models/Users');
 
@@ -9,7 +10,7 @@ router.post('/user', async (req,res)=>{
     const token = await user.generateAuthToken();
     user.tokens = user.tokens.concat({ token });
     await user.save()
-    res.send(user);
+    res.send({user, token});
     
    }catch(error){
     res.status(400);
@@ -19,7 +20,7 @@ router.post('/user', async (req,res)=>{
         
 })
 
-router.get('/user', async (req, res)=>{
+router.get('/user', auth, async (req, res)=>{
 
     try{
         const users =  await User.find({});
@@ -30,7 +31,12 @@ router.get('/user', async (req, res)=>{
     }
 })
 
-router.get('/user/:id', async (req, res)=>{
+
+router.get('/user/profile', auth, async (req, res)=>{
+    res.send(req.user);
+})
+
+router.get('/user/:id', auth, async (req, res)=>{
     try{
         const user = await User.findById(req.params.id);
 
@@ -41,7 +47,7 @@ router.get('/user/:id', async (req, res)=>{
     }
 })
 
-router.put('/user/:id', async (req,res)=>{
+router.put('/user/:id',auth, async (req,res)=>{
     const updates = Object.keys(req.body);
     const allowedUpdates = ['userName', 'userEmail', 'password'];
     const isValidUpdate = updates.every((update)=> allowedUpdates.includes(update));
@@ -65,7 +71,7 @@ router.put('/user/:id', async (req,res)=>{
     }
 })
 
-router.delete('/user/:id', async (req,res)=>{
+router.delete('/user/:id', auth, async (req,res)=>{
     try{
         const user = await User.findByIdAndDelete(req.params.id);
         if(!user) return res.status(404).send();
